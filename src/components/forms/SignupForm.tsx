@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-// import { signIn } from "next-auth/react";
-// import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface FormData {
   email: string;
@@ -11,7 +11,7 @@ interface FormData {
 }
 
 export default function SignUpForm() {
-  // const router = useRouter();
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -40,40 +40,39 @@ export default function SignUpForm() {
     }
     console.log(formData);
 
-    // try {
-    //   const response = await fetch("/api/auth/signup", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       email: formData.email,
-    //       password: formData.password,
-    //     }),
-    //   });
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-    //   if (!response.ok) {
-    //     const data = await response.json();
-    //     throw new Error(data.error || "Failed to sign up");
-    //   }
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to sign up");
+      }
 
-    //   // If signup successful, automatically sign in
-    //   const result = await signIn("credentials", {
-    //     email: formData.email,
-    //     password: formData.password,
-    //     redirect: false,
-    //   });
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
 
-    //   if (result?.error) {
-    //     setError(result.error);
-    //   } else {
-    //     router.push("/dashboard"); // or wherever you want to redirect after signup
-    //   }
-    // } catch (err) {
-    //   setError(err instanceof Error ? err.message : "An error occurred");
-    // } finally {
-    //   setLoading(false);
-    // }
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        router.push("/");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -119,7 +118,7 @@ export default function SignUpForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-neutral-700 text-white py-3 px-6 rounded-md hover:bg-neutral-950 transition duration-300 text-xl disabled:opacity-50"
+          className="w-full bg-neutral-700 text-white py-3 px-6 rounded-md hover:bg-neutral-950 transition duration-300 text-xl disabled:cursor-not-allowed disabled:bg-neutral-400 disabled:text-neutral-300"
         >
           {loading ? "Signing up..." : "Sign Up"}
         </button>
