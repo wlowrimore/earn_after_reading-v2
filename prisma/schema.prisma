@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = TEMPORARY_LOCAL_POSTGRES_URL
+  url      = "postgresql://postgres:WNTM@family19@localhost:5432/earDB"
 }
 
 generator client {
