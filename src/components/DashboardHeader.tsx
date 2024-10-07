@@ -1,21 +1,30 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+
 import { extractFirstName } from "../../utils/extractFirstName";
 import { extractLastName } from "../../utils/extractLastName";
 import { extractInitials } from "../../utils/extractInitials";
 
-const DashboardHeader = () => {
+export function DashboardHeader() {
   const { data: session } = useSession();
-  console.log("Session:", session);
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/dashboard/how-it-works", label: "How it works" },
+    { href: "/dashboard/case-studies", label: "Case studies" },
+  ];
 
   const firstName = extractFirstName();
   const lastName = extractLastName();
   const initials = extractInitials();
 
   return (
-    <aside className="flex flex-col w-[12rem] h-[77vh] min-h-[77vh] py-4 bg-purple-50 border-r border-neutral-400">
-      <div className="w-full flex items-center justify-center mt-3 mb-12 pb-6 mx-auto border-b border-neutral-300 gap-1">
+    <aside className="flex flex-col w-[12rem] h-[87vh] min-h-[77vh] py-4 bg-purple-50 border-r border-neutral-400">
+      <div className="w-full flex items-center justify-center mt-3 mb-6 pb-6 mx-auto border-b border-neutral-300 gap-1">
         <div className="text-lg font-bold bg-indigo-400 text-white rounded-full w-8 h-8 p-6 flex items-center justify-center">
           <h1>{initials}</h1>
         </div>
@@ -24,31 +33,31 @@ const DashboardHeader = () => {
           <p>{lastName}</p>
         </div>
       </div>
-      <section className="px-8">
-        <ul className="w-full h-full text-start space-y-3">
-          <li className="text-sm text-black tracking-wider py-2 px-4 rounded-full mt-1 hover:bg-indigo-400 hover:text-white transition duration-300 cursor-pointer">
-            How It Works
-          </li>
-          <li className="text-sm text-black tracking-wider py-2 px-4 rounded-full mt-1 hover:bg-indigo-400 hover:text-white transition duration-300 cursor-pointer">
-            Case Studies
-          </li>
-          <li className="text-sm text-black tracking-wider py-2 px-4 rounded-full mt-1 hover:bg-indigo-400 hover:text-white transition duration-300 cursor-pointer">
-            Create Tasks
-          </li>
+      <nav className="px-8 space-y-6">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
 
-          <li className=" text-sm text-black tracking-wider py-2 px-4 rounded-full mt-1 hover:bg-indigo-400 hover:text-white transition duration-300 cursor-pointer">
-            Contact Us
-          </li>
-          <li
-            onClick={() => signOut({ redirectTo: "/" })}
-            className="fixed bottom-28 text-sm text-black tracking-wider py-2 px-4 rounded-full hover:bg-indigo-400 hover:text-white transition duration-300 cursor-pointer"
-          >
-            SignOut
-          </li>
-        </ul>
-      </section>
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col ${
+                isActive
+                  ? "text-indigo-400 font-semibold"
+                  : "text-gray-600 hover:text-indigo-400"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+        <div
+          onClick={() => signOut({ redirectTo: "/" })}
+          className="fixed bottom-24 text-sm tracking-wider py-1 px-6 rounded-full bg-indigo-400 text-white hover:bg-indigo-500 transition duration-300 cursor-pointer"
+        >
+          SignOut
+        </div>
+      </nav>
     </aside>
   );
-};
-
-export default DashboardHeader;
+}
