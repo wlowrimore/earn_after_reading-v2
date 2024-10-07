@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import SiteLogo from "../../../public/logos/siteLogo.webp";
 
 interface FormData {
+  name: string;
   email: string;
   password: string;
   reEnteredPassword: string;
@@ -13,6 +16,7 @@ interface FormData {
 export default function SignUpForm() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
+    name: "",
     email: "",
     password: "",
     reEnteredPassword: "",
@@ -41,32 +45,40 @@ export default function SignUpForm() {
     console.log(formData);
 
     try {
-      const response = await fetch("/api/auth/signup", {
+      const signupResponse = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name: formData.name,
           email: formData.email,
           password: formData.password,
         }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to sign up");
+      const signupData = await signupResponse.json();
+
+      if (!signupResponse.ok) {
+        throw new Error(signupData.error || "Failed to sign up");
       }
 
-      const result = await signIn("credentials", {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const signInResult = await signIn("credentials", {
+        name: formData.name,
         email: formData.email,
         password: formData.password,
         redirect: false,
       });
 
-      if (result?.error) {
-        setError(result.error);
+      console.log("SignIn result:", signInResult);
+
+      if (signInResult?.error) {
+        setError(signInResult.error);
       } else {
-        router.push("/");
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -76,8 +88,20 @@ export default function SignUpForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mt-10">
+    <form onSubmit={handleSubmit} className="pb-4">
+      <div className="mt-6">
+        <label htmlFor="name">Full Name</label>
+        <input
+          type="name"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full bg-indigo-200/40 rounded-md outline-none p-2 shadow-md shadow-neutral-300"
+          required
+        />
+      </div>
+      <div className="mt-6">
         <label htmlFor="email">Email</label>
         <input
           type="email"
@@ -85,7 +109,7 @@ export default function SignUpForm() {
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full bg-white rounded-t-md border-b border-neutral-600 outline-none p-2"
+          className="w-full bg-indigo-200/40 rounded-md outline-none p-2 shadow-md shadow-neutral-300"
           required
         />
       </div>
@@ -97,7 +121,7 @@ export default function SignUpForm() {
           name="password"
           value={formData.password}
           onChange={handleChange}
-          className="w-full bg-white rounded-t-md border-b border-neutral-600 outline-none p-2"
+          className="w-full bg-indigo-200/40 rounded-md outline-none p-2 shadow-md shadow-neutral-300"
           required
         />
       </div>
@@ -109,18 +133,18 @@ export default function SignUpForm() {
           name="reEnteredPassword"
           value={formData.reEnteredPassword}
           onChange={handleChange}
-          className="w-full bg-white rounded-t-md border-b border-neutral-600 outline-none p-2"
+          className="w-full bg-indigo-200/40 rounded-md outline-none p-2 shadow-md shadow-neutral-300"
           required
         />
       </div>
       {error && <p className="text-red-500 mt-2">{error}</p>}
-      <div className="mt-6">
+      <div className="mt-12 flex items-center justify-center">
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-neutral-700 text-white py-3 px-6 rounded-md hover:bg-neutral-950 transition duration-300 text-xl disabled:cursor-not-allowed disabled:bg-neutral-400 disabled:text-neutral-300"
+          className="w-full flex justify-center items-center gap-2.5 bg-neutral-800 text-white py-2 px-6 rounded-full shadow-md shadow-neutral-700 hover:bg-neutral-950 transition duration-300 text-lg disabled:cursor-not-allowed disabled:bg-neutral-400 disabled:text-neutral-300"
         >
-          {loading ? "Signing up..." : "Sign Up"}
+          {loading ? "Signing up..." : "Submit"}
         </button>
       </div>
     </form>

@@ -1,35 +1,44 @@
 import { NextResponse } from "next/server";
-// import { hash } from 'bcrypt';
-// import { db } from "@/lib/db";
+import { hash } from "bcrypt";
+import { db } from "../../../../../lib/db";
 
-export async function POST(request: Request) {
-    try {
-        const { email, password } = await request.json();
+export async function POST(req: Request) {
+  try {
+    const { name, email, password } = await req.json();
 
-        if (!email || !password) {
-            return NextResponse.json(
-                { error: 'Email and password are required' },
-                { status: 400 }
-            );
-        }
+    // Check if user already exists
+    const existingUser = await db.user.findUnique({
+      where: { email },
+    });
 
-        // const hashedPassword = await hash(password, 10);
-        // const user = await db.user.create({
-        //     data: {
-        //         email,
-        //         password: hashedPassword
-        //     }
-        // })
-
-        return NextResponse.json(
-            { message: 'User created successfully' },
-            { status: 200 }
-        )
-    } catch (error) {
-        console.error(error);
-        return NextResponse.json(
-            { error: 'An error occurred while creating the user' },
-            { status: 400 }
-        )
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 400 }
+      );
     }
+
+    // Hash password
+    const hashedPassword = await hash(password, 10);
+
+    // Create user
+    const user = await db.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    return NextResponse.json(
+      { user: { id: user.id, email: user.email } },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { error: "An error occurred during signup" },
+      { status: 500 }
+    );
+  }
 }
