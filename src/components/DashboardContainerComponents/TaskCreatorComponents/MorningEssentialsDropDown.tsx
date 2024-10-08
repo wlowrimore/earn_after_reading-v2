@@ -60,7 +60,7 @@ const MorningEssentialsDropDown = () => {
             className="flex justify-between items-center px-6 bg-neutral-700 text-white p-2 rounded-md"
           >
             <p className="max-w-[5rem] truncate">{task}</p>
-            {isSaved && <p className="text-green-500">Saved</p>}
+            {isSaved && <p className="text-green-500">Task Saved</p>}
             <div className="flex items-center gap-4">
               <input
                 type="time"
