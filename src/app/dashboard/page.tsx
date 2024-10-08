@@ -10,9 +10,9 @@ const Dashboard = () => {
   const firstName = extractFirstName();
   return (
     <main className="container flex flex-col mx-auto">
-      <div className="flex flex-col border-b border-neutral-300 pb-2 px-6">
+      <div className="flex flex-col border-b border-neutral-300 pb-3 px-6">
         <h1 className="text-6xl font-light text-neutral-700">Dashboard</h1>
-        <p className="text-2xl">
+        <p className="text-lg ml-1">
           Welcome to you personalized dashboard, {firstName}.
         </p>
       </div>

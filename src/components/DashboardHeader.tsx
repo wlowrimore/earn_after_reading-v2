@@ -1,61 +1,58 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-
-import { extractFirstName } from "../../utils/extractFirstName";
-import { extractLastName } from "../../utils/extractLastName";
-import { extractInitials } from "../../utils/extractInitials";
+import { UserAvatar } from "./ui/UserAvatar";
+import { LayoutDashboard, HelpCircle, BookOpen, Icon } from "lucide-react";
 
 export function DashboardHeader() {
-  const { data: session } = useSession();
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/dashboard/how-it-works", label: "How it works" },
-    { href: "/dashboard/case-studies", label: "Case studies" },
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    {
+      href: "/dashboard/how-it-works",
+      label: "How it works",
+      icon: HelpCircle,
+    },
+    { href: "/dashboard/case-studies", label: "Case studies", icon: BookOpen },
   ];
 
-  const firstName = extractFirstName();
-  const lastName = extractLastName();
-  const initials = extractInitials();
-
   return (
-    <aside className="flex flex-col w-[12rem] h-[87vh] min-h-[77vh] py-4 bg-purple-50 border-r border-neutral-400">
+    <aside className="flex flex-col w-[20rem] h-[87vh] min-h-[77vh] py-4 bg-indigo-50/30 border-r border-neutral-400 mx-auto">
       <div className="w-full flex items-center justify-center mt-3 mb-6 pb-6 mx-auto border-b border-neutral-300 gap-1">
-        <div className="text-lg font-bold bg-indigo-400 text-white rounded-full w-8 h-8 p-6 flex items-center justify-center">
-          <h1>{initials}</h1>
-        </div>
-        <div className="leading-4 tracking-wide text-base text-black flex flex-col">
-          <p>{firstName}</p>
-          <p>{lastName}</p>
-        </div>
+        <UserAvatar />
       </div>
       <nav className="px-8 space-y-6">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
+          const Icon = item.icon;
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col ${
+              className={`flex flex-col mx-auto ${
                 isActive
-                  ? "text-indigo-400 font-semibold"
+                  ? "text-[#6c2a4d] font-semibold"
                   : "text-gray-600 hover:text-indigo-400"
               }`}
             >
-              {item.label}
+              <div className="flex items-center gap-2">
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </div>
             </Link>
           );
         })}
-        <div
-          onClick={() => signOut({ redirectTo: "/" })}
-          className="fixed bottom-24 text-sm tracking-wider py-1 px-6 rounded-full bg-indigo-400 text-white hover:bg-indigo-500 transition duration-300 cursor-pointer"
-        >
-          SignOut
+        <div className="fixed bottom-24">
+          <button
+            onClick={() => signOut({ redirectTo: "/" })}
+            className="w-[12rem] text-sm text-center px-6 py-1 tracking-wider rounded-full bg-[#6c2a4d] text-white hover:bg-neutral-800 transition duration-300 cursor-pointer"
+          >
+            Sign Out
+          </button>
         </div>
       </nav>
     </aside>
