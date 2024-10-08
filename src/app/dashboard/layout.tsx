@@ -1,4 +1,4 @@
-import { DashboardHeader } from "../../components/DashboardHeader";
+import { DashboardSideMenu } from "../../components/DashboardSideMenu";
 
 export default function DashboardLayout({
   children,
@@ -8,7 +8,7 @@ export default function DashboardLayout({
   return (
     <div className="container flex mx-auto p-12">
       <main className="w-full flex mx-auto p-4">
-        <DashboardHeader />
+        <DashboardSideMenu />
         {children}
       </main>
     </div>

@@ -4,9 +4,15 @@ import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { UserAvatar } from "./ui/UserAvatar";
-import { LayoutDashboard, HelpCircle, BookOpen, Icon } from "lucide-react";
+import {
+  LayoutDashboard,
+  HelpCircle,
+  BookOpen,
+  PackagePlus,
+  Icon,
+} from "lucide-react";
 
-export function DashboardHeader() {
+export function DashboardSideMenu() {
   const pathname = usePathname();
 
   const navItems = [
@@ -17,6 +23,11 @@ export function DashboardHeader() {
       icon: HelpCircle,
     },
     { href: "/dashboard/case-studies", label: "Case studies", icon: BookOpen },
+    {
+      href: "/dashboard/task-creator",
+      label: "Task creator",
+      icon: PackagePlus,
+    },
   ];
 
   return (
