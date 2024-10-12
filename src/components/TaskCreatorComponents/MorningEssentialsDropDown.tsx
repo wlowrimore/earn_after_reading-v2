@@ -15,12 +15,14 @@ interface Task {
   text: string;
   deadline: string;
   duedate: string;
+  taskFor: string;
   isSaved: boolean;
   isValid: boolean;
 }
 
 const MorningEssentialsDropDown: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskForValue, setTaskForValue] = useState(tasks[0]?.taskFor || "");
 
   const options: Option[] = [
     { value: "Eat Breakfast", label: "Eat Breakfast" },
@@ -44,6 +46,7 @@ const MorningEssentialsDropDown: React.FC = () => {
         text: option.value,
         deadline: "",
         duedate: new Date().toISOString().split("T")[0],
+        taskFor: "",
         isSaved: false,
         isValid: false,
         isCompleted: false,
@@ -64,6 +67,14 @@ const MorningEssentialsDropDown: React.FC = () => {
     setTasks(
       tasks.map((task) =>
         task.id === taskId ? { ...task, duedate: newDueDate } : task
+      )
+    );
+  };
+
+  const handleTaskForChange = (taskId: string, newTaskFor: string) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, taskFor: newTaskFor } : task
       )
     );
   };
@@ -142,6 +153,7 @@ const MorningEssentialsDropDown: React.FC = () => {
         text: taskToSave.text,
         deadline: taskToSave.deadline,
         duedate: taskToSave.duedate,
+        taskFor: taskToSave.taskFor,
         isCompleted: taskToSave.isCompleted,
       });
 
@@ -149,6 +161,7 @@ const MorningEssentialsDropDown: React.FC = () => {
         text: taskToSave.text,
         deadline: taskToSave.deadline,
         duedate: taskToSave.duedate,
+        taskFor: taskToSave.taskFor,
         isCompleted: taskToSave.isCompleted,
       });
 
@@ -204,7 +217,25 @@ const MorningEssentialsDropDown: React.FC = () => {
 
   return (
     <main id="task-creator" className="p-6 w-full">
-      <section className="w-[40%] flex justify-between py-5 pl-10 bg-neutral-700 rounded-lg mb-8">
+      <section className="w-[40%] flex justify-evenly px-3 py-5 bg-neutral-700 rounded-lg mb-8">
+        <div>
+          <h1 className="text-white">Who&apos;s This Task For?</h1>
+          <input
+            type="text"
+            name="task-for"
+            value={taskForValue}
+            onChange={(e) => {
+              setTaskForValue(e.target.value);
+              tasks[0] &&
+                setTasks(
+                  tasks.map((task, index) =>
+                    index === 0 ? { ...task, taskFor: e.target.value } : task
+                  )
+                );
+            }}
+            className="w-4/5 bg-indigo-100 py-[0.077rem] px-2 rounded outline-none"
+          />
+        </div>
         <div>
           <h1 className="text-white">Select Due Date</h1>
           <input

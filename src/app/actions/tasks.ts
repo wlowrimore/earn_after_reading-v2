@@ -8,38 +8,53 @@ export async function getTasks(task: {
   text: string;
   deadline: string;
   duedate?: string;
+  taskFor?: string;
   isCompleted?: boolean;
 }) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    throw new Error("User not authenticated");
+  try {
+    const session = await auth();
+    console.log("SESSION:", session);
+  } catch (error) {
+    console.error("Error authenticating:", error);
   }
 
-  const tasks = await db.task.findMany({
-    where: {
-      userId: session.user.id,
-    },
-  });
-  console.log("Loaded tasks:", tasks);
-  return tasks;
+  //   if (!session?.user?.id) {
+  //     throw new Error("User not authenticated");
+  //   }
+
+  //   const tasks = await db.task.findMany({
+  //     where: {
+  //       userId: session.user.id,
+  //     },
+  //   });
+  //   console.log("Loaded tasks:", tasks);
+  //   return tasks;
 }
 
 export async function saveTask(task: {
   text: string;
   deadline: string;
   duedate: string;
+  taskFor?: string;
   isCompleted?: boolean;
   isValid?: boolean;
 }) {
   const session = await auth();
+  const id = session?.user?.id;
+  console.log("id", id);
 
-  console.log("Session:", session);
+  console.log("Session user ID:", session?.user?.id);
   console.log("Saving task:", task);
 
-  if (!session?.user?.id) {
-    console.error("User not authenticated");
-    throw new Error("User not authenticated");
+  const user = await db.user.findUnique({
+    where: {
+      id: session?.user?.id,
+    },
+  });
+
+  if (!user) {
+    console.error("User not found in database");
+    throw new Error("User not found in database");
   }
 
   try {
@@ -48,9 +63,10 @@ export async function saveTask(task: {
         text: task.text,
         deadline: task.deadline,
         duedate: task.duedate,
+        taskFor: task.taskFor,
         isCompleted: task.isCompleted ?? false,
         isSaved: true,
-        userId: session.user.id,
+        userId: user.id,
       },
     });
 
@@ -69,6 +85,7 @@ export async function removeTask(task: {
   isSaved?: boolean;
   isValid?: boolean;
   duedate?: string;
+  taskFor?: string;
   isCompleted?: boolean;
 }) {
   const session = await auth();

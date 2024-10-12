@@ -4,7 +4,7 @@ import DashboardSavedTasks from "../DashboardContainerComponents/DashboardSavedT
 
 export default function ComponentsHub() {
   return (
-    <div>
+    <div id="dashboard">
       <DashboardSavedTasks />
     </div>
   );
