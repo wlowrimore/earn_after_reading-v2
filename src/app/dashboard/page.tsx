@@ -1,9 +1,9 @@
 "use client";
 
-import { DashboardContainer } from "@/components/DashboardContainerComponents/DashboardContainer";
 import { useSession } from "next-auth/react";
 import { extractFirstName } from "../../../utils/extractFirstName";
 import React from "react";
+import ComponentsHub from "@/components/DashboardContainerComponents/ComponentsHub";
 
 const Dashboard = () => {
   const { data: session } = useSession();
@@ -17,7 +17,7 @@ const Dashboard = () => {
         </p>
       </div>
       <div>
-        <DashboardContainer />
+        <ComponentsHub />
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-import { HowItWorks } from "../../../components/DashboardContainerComponents/HowItWorks";
+import { HowItWorks } from "../../../components/HowItWorks";
 
 const HowItWorksPage = () => {
   return (

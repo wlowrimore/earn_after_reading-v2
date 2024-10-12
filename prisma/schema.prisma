@@ -60,6 +60,9 @@ model Task {
   id          String  @id @default(cuid())
   text        String
   deadline    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  duedate     String 
   isSaved     Boolean
   isCompleted Boolean @default(false)
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)

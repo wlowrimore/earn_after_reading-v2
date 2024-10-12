@@ -1,9 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import DashboardMainContent from "./DashboardMainContent";
-import { HowItWorks } from "./HowItWorks";
-import { CaseStudies } from "./CaseStudies";
+import ComponentsHub from "../components/DashboardContainerComponents/ComponentsHub";
+import { HowItWorks } from "../components/HowItWorks";
+import { CaseStudies } from "../components/CaseStudies";
 
 export function DashboardContainer() {
   const pathname = usePathname();
@@ -15,7 +15,7 @@ export function DashboardContainer() {
       case "/dashboard/case-studies":
         return <CaseStudies />;
       case "/dashboard":
-        return <DashboardMainContent />;
+        return <ComponentsHub />;
       default:
         return <div>Page not found</div>;
     }

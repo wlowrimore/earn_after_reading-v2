@@ -28,9 +28,9 @@ export function UserAvatar<UserAvatarProps>() {
     return <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse" />;
   }
 
-  if (googleAvatar) {
-    console.log("Google avatar:", googleAvatar);
-  }
+  //   if (googleAvatar) {
+  //     console.log("Google avatar:", googleAvatar);
+  //   }
 
   return (
     <div className="flex items-center gap-2 justify-center">

@@ -1,4 +1,4 @@
-import { CaseStudies } from "../../../components/DashboardContainerComponents/CaseStudies";
+import { CaseStudies } from "../../../components/CaseStudies";
 
 const HowItWorksPage = () => {
   return (
