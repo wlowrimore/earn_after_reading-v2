@@ -8,53 +8,46 @@ export async function getTasks(task: {
   text: string;
   deadline: string;
   duedate?: string;
-  taskFor?: string;
+  taskFor: string;
   isCompleted?: boolean;
 }) {
   try {
     const session = await auth();
     console.log("SESSION:", session);
+
+    if (!session?.user?.id) {
+      throw new Error("User not authenticated");
+    }
+
+    const tasks = await db.task.findMany({
+      where: {
+        userId: session.user.id,
+      },
+    });
+
+    console.log("Tasks retrieved:", tasks);
+    return tasks;
   } catch (error) {
-    console.error("Error authenticating:", error);
+    console.error("Error getting tasks:", error);
+    throw error;
   }
-
-  //   if (!session?.user?.id) {
-  //     throw new Error("User not authenticated");
-  //   }
-
-  //   const tasks = await db.task.findMany({
-  //     where: {
-  //       userId: session.user.id,
-  //     },
-  //   });
-  //   console.log("Loaded tasks:", tasks);
-  //   return tasks;
 }
 
 export async function saveTask(task: {
   text: string;
   deadline: string;
   duedate: string;
-  taskFor?: string;
+  taskFor: string;
   isCompleted?: boolean;
   isValid?: boolean;
 }) {
   const session = await auth();
   const id = session?.user?.id;
-  console.log("id", id);
-
-  console.log("Session user ID:", session?.user?.id);
+  console.log("Session user ID:", id);
   console.log("Saving task:", task);
 
-  const user = await db.user.findUnique({
-    where: {
-      id: session?.user?.id,
-    },
-  });
-
-  if (!user) {
-    console.error("User not found in database");
-    throw new Error("User not found in database");
+  if (!id) {
+    throw new Error("User not authenticated");
   }
 
   try {
@@ -66,7 +59,7 @@ export async function saveTask(task: {
         taskFor: task.taskFor,
         isCompleted: task.isCompleted ?? false,
         isSaved: true,
-        userId: user.id,
+        userId: id,
       },
     });
 
@@ -85,7 +78,7 @@ export async function removeTask(task: {
   isSaved?: boolean;
   isValid?: boolean;
   duedate?: string;
-  taskFor?: string;
+  taskFor: string;
   isCompleted?: boolean;
 }) {
   const session = await auth();
@@ -100,5 +93,6 @@ export async function removeTask(task: {
     },
   });
 
+  console.log("Task removed successfully:", removedTask);
   return removedTask;
 }

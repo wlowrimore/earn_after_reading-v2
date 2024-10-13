@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Select, { ActionMeta, components } from "react-select";
-import { saveTask, removeTask } from "@/app/actions/tasks";
+import { saveTask, removeTask } from "../../app/actions/tasks";
 
 interface Option {
   value: string;
@@ -22,7 +22,7 @@ interface Task {
 
 const MorningEssentialsDropDown: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [taskForValue, setTaskForValue] = useState(tasks[0]?.taskFor || "");
+  const [taskForValue, setTaskForValue] = useState<string>("");
 
   const options: Option[] = [
     { value: "Eat Breakfast", label: "Eat Breakfast" },
@@ -46,7 +46,7 @@ const MorningEssentialsDropDown: React.FC = () => {
         text: option.value,
         deadline: "",
         duedate: new Date().toISOString().split("T")[0],
-        taskFor: "",
+        taskFor: taskForValue,
         isSaved: false,
         isValid: false,
         isCompleted: false,
@@ -71,12 +71,13 @@ const MorningEssentialsDropDown: React.FC = () => {
     );
   };
 
-  const handleTaskForChange = (taskId: string, newTaskFor: string) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, taskFor: newTaskFor } : task
-      )
-    );
+  const handleTaskForChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTaskFor = e.target.value;
+    setTaskForValue(newTaskFor);
+
+    if (tasks.length > 0) {
+      setTasks(tasks.map((task) => ({ ...task, taskFor: newTaskFor })));
+    }
   };
 
   const validateDeadline = (deadline: string): boolean => {
@@ -149,20 +150,13 @@ const MorningEssentialsDropDown: React.FC = () => {
     }
 
     try {
-      console.log("Calling saveTask with:", {
-        text: taskToSave.text,
-        deadline: taskToSave.deadline,
-        duedate: taskToSave.duedate,
-        taskFor: taskToSave.taskFor,
-        isCompleted: taskToSave.isCompleted,
-      });
-
       const savedTask = await saveTask({
         text: taskToSave.text,
         deadline: taskToSave.deadline,
         duedate: taskToSave.duedate,
         taskFor: taskToSave.taskFor,
         isCompleted: taskToSave.isCompleted,
+        isValid: taskToSave.isValid,
       });
 
       console.log("Task saved successfully:", savedTask);
@@ -182,18 +176,18 @@ const MorningEssentialsDropDown: React.FC = () => {
     } catch (error) {
       console.error("Failed to save task:", error);
 
-      setTasks(
-        tasks.map((task, index) => {
-          if (index === taskIndex) {
-            return {
-              ...task,
-              isSaved: false,
-              isValid: false,
-            };
-          }
-          return task;
-        })
-      );
+      // setTasks(
+      //   tasks.map((task, index) => {
+      //     if (index === taskIndex) {
+      //       return {
+      //         ...task,
+      //         isSaved: false,
+      //         isValid: false,
+      //       };
+      //     }
+      //     return task;
+      //   })
+      // );
     }
   };
 
@@ -209,6 +203,7 @@ const MorningEssentialsDropDown: React.FC = () => {
         text: taskToRemove.text,
         deadline: taskToRemove.deadline,
         duedate: taskToRemove.duedate,
+        taskFor: taskToRemove.taskFor,
       });
     } catch (error) {
       console.error("Failed to remove task:", error);
@@ -224,15 +219,7 @@ const MorningEssentialsDropDown: React.FC = () => {
             type="text"
             name="task-for"
             value={taskForValue}
-            onChange={(e) => {
-              setTaskForValue(e.target.value);
-              tasks[0] &&
-                setTasks(
-                  tasks.map((task, index) =>
-                    index === 0 ? { ...task, taskFor: e.target.value } : task
-                  )
-                );
-            }}
+            onChange={handleTaskForChange}
             className="w-4/5 bg-indigo-100 py-[0.077rem] px-2 rounded outline-none"
           />
         </div>
