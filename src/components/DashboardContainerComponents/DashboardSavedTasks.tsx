@@ -45,17 +45,17 @@ const DashboardSavedTasks: React.FC = () => {
   const uniqueTaskFors = Array.from(new Set(loadedTasks.map((t) => t.taskFor)));
 
   return (
-    <main className="m-4 max-w-[30rem]">
+    <main className="m-4 max-w-[40rem]">
       {uniqueTaskFors.map((taskFor) => (
         <div key={taskFor}>
-          <div className="bg-neutral-700 text-white text-2xl py-1 px-4">
+          <div className="bg-neutral-700 border-b-4 border-indigo-300 text-white text-2xl py-1 px-4 rounded-t-xl">
             <h3>Saved Tasks for {taskFor}</h3>
           </div>
-          <div className="bg-purple-300 px-4 py-1">
+          <div className="bg-indigo-50 px-4 py-2 space-y-2 rounded-b-lg">
             {loadedTasks.map((t) => (
               <div key={t.id}>
-                <div className="flex justify-between">
-                  <p>{t.text}</p>
+                <div className="flex justify-between items-center border-b border-neutral-400 pb-2">
+                  <p className="w-[13rem]">{t.text}</p>
                   <p>{t.deadline}</p>
                   <p>{t.duedate}</p>
                   <p>{t.isCompleted}</p>
