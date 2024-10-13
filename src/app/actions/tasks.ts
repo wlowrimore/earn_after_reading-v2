@@ -10,6 +10,7 @@ export async function getTasks(task: {
   duedate?: string;
   taskFor: string;
   isCompleted?: boolean;
+  createdAt?: Date;
 }) {
   try {
     const session = await auth();
@@ -67,6 +68,32 @@ export async function saveTask(task: {
     return savedTask;
   } catch (error) {
     console.error("Error saving task:", error);
+    throw error;
+  }
+}
+
+export async function updateTask(task: { id: string; isCompleted: boolean }) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error("User not authenticated");
+  }
+
+  try {
+    const updatedTask = await db.task.update({
+      where: {
+        id: task.id,
+        userId: session.user.id, // Ensure the task belongs to the authenticated user
+      },
+      data: {
+        isCompleted: task.isCompleted,
+      },
+    });
+
+    console.log("Task updated successfully:", updatedTask);
+    return updatedTask;
+  } catch (error) {
+    console.error("Error updating task:", error);
     throw error;
   }
 }

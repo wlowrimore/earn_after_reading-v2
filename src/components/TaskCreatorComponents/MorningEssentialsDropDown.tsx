@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Select, { ActionMeta, components } from "react-select";
+import { useState } from "react";
+import Select, { ActionMeta } from "react-select";
 import { saveTask, removeTask } from "../../app/actions/tasks";
 
 interface Option {
@@ -175,19 +175,6 @@ const MorningEssentialsDropDown: React.FC = () => {
       );
     } catch (error) {
       console.error("Failed to save task:", error);
-
-      // setTasks(
-      //   tasks.map((task, index) => {
-      //     if (index === taskIndex) {
-      //       return {
-      //         ...task,
-      //         isSaved: false,
-      //         isValid: false,
-      //       };
-      //     }
-      //     return task;
-      //   })
-      // );
     }
   };
 

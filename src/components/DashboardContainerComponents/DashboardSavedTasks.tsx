@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { extractFirstName } from "../../../utils/extractFirstName";
-import { getTasks } from "../../app/actions/tasks";
+import { getTasks, updateTask } from "../../app/actions/tasks";
 
 interface LoadedTaskProps {
   id: string;
@@ -12,11 +11,11 @@ interface LoadedTaskProps {
   duedate: string;
   taskFor: string;
   isCompleted?: boolean;
+  createdAt?: Date;
 }
 
 const DashboardSavedTasks: React.FC = () => {
   const { data: session } = useSession();
-  const firstName = extractFirstName();
 
   const [loadedTasks, setLoadedTasks] = useState<LoadedTaskProps[]>([]);
 
@@ -31,6 +30,7 @@ const DashboardSavedTasks: React.FC = () => {
             duedate: "",
             taskFor: "",
             isCompleted: false,
+            createdAt: new Date(),
           });
 
           setLoadedTasks(tasks);
@@ -42,23 +42,61 @@ const DashboardSavedTasks: React.FC = () => {
     loadTasks();
   }, [session]);
 
+  const handleCheckboxChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    taskId: string
+  ) => {
+    const { checked } = event.target;
+
+    try {
+      await updateTask({ id: taskId, isCompleted: checked });
+
+      setLoadedTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId ? { ...task, isCompleted: checked } : task
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    }
+  };
+
   const uniqueTaskFors = Array.from(new Set(loadedTasks.map((t) => t.taskFor)));
+  const datesCreated = Array.from(new Set(loadedTasks.map((t) => t.createdAt)));
 
   return (
     <main className="m-4 max-w-[40rem]">
       {uniqueTaskFors.map((taskFor) => (
         <div key={taskFor}>
-          <div className="bg-neutral-700 border-b-4 border-indigo-300 text-white text-2xl py-1 px-4 rounded-t-xl">
+          <div className="flex justify-between items-end bg-neutral-700 border-b-4 border-blue-200 text-white text-2xl py-1 px-4 rounded-t-lg shadow-lg shadow-neutral-700">
             <h3>Saved Tasks for {taskFor}</h3>
+            <p className="text-base">
+              Created on {datesCreated?.[0]?.toLocaleDateString()}
+            </p>
           </div>
-          <div className="bg-indigo-50 px-4 py-2 space-y-2 rounded-b-lg">
+          <div className="bg-indigo-50 px-4 py-2 space-y-4 rounded-b-lg shadow-md shadow-neutral-600">
             {loadedTasks.map((t) => (
               <div key={t.id}>
-                <div className="flex justify-between items-center border-b border-neutral-400 pb-2">
+                <div className="flex justify-between items-center border-b border-neutral-400">
                   <p className="w-[13rem]">{t.text}</p>
-                  <p>{t.deadline}</p>
+                  <p className="w-[6rem]">{t.deadline}</p>
                   <p>{t.duedate}</p>
-                  <p>{t.isCompleted}</p>
+                  <input
+                    type="checkbox"
+                    id={t.id}
+                    checked={t.isCompleted}
+                    onChange={(event) => handleCheckboxChange(event, t.id)}
+                    className="w-4 h-4"
+                  />
+                  <span
+                    className={`ml-[-1.5rem] text-[0.85rem] ${
+                      t.isCompleted
+                        ? "bg-neutral-600 font-semibold text-green-300 px-2 rounded-full"
+                        : "bg-transparent font-semibold text-red-500 px-2 rounded-full"
+                    }`}
+                  >
+                    {t.isCompleted ? "Completed" : "Incomplete"}
+                  </span>
                 </div>
               </div>
             ))}
