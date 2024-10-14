@@ -26,14 +26,21 @@ const MorningEssentialsDropDown: React.FC = () => {
 
   const options: Option[] = [
     { value: "Eat Breakfast", label: "Eat Breakfast" },
-    { value: "Clean Breakfast", label: "Clean Breakfast" },
+    { value: "Clean Up Breakfast", label: "Clean Up Breakfast" },
     { value: "Brush Teeth", label: "Brush Teeth" },
     { value: "Wash Face", label: "Wash Face" },
     { value: "Take Shower", label: "Take Shower" },
     { value: "Apply Deodorant", label: "Apply Deodorant" },
+    { value: "Apply Foot Spray", label: "Apply Foot Spray" },
     { value: "Get Dressed", label: "Get Dressed" },
+    { value: "Make Bed", label: "Make Bed" },
+    { value: "Straighten Room", label: "Straighten Room" },
     { value: "Inventory Backpack", label: "Inventory Backpack" },
+    { value: "Laptop & Charger", label: "Laptop & Charger" },
+    { value: "Extra-Curricular Items", label: "Extra-Curricular Items" },
     { value: "Take Medication", label: "Take Medication" },
+    { value: "Take out the Trash", label: "Take out the Trash" },
+    { value: "Feed Pets", label: "Feed Pets" },
   ];
 
   const handleOptionChange = (
@@ -53,6 +60,30 @@ const MorningEssentialsDropDown: React.FC = () => {
       };
       setTasks([...tasks, newTask]);
     }
+  };
+
+  const handleCustomTitleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    taskId: string,
+    newTitle: string
+  ) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, text: newTitle } : task
+      )
+    );
+  };
+
+  const handleCustomDeadlineChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    taskId: string,
+    newDeadline: string
+  ) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, deadline: newDeadline } : task
+      )
+    );
   };
 
   const handleDeadlineChange = (taskId: string, newDeadline: string) => {
@@ -238,7 +269,6 @@ const MorningEssentialsDropDown: React.FC = () => {
           }),
         }}
       />
-
       <div className="flex flex-col gap-2 mt-6">
         {tasks.map((task, index) => (
           <div

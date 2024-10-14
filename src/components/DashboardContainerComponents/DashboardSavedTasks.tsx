@@ -65,7 +65,7 @@ const DashboardSavedTasks: React.FC = () => {
   const datesCreated = Array.from(new Set(loadedTasks.map((t) => t.createdAt)));
 
   return (
-    <main className="m-4 max-w-[40rem]">
+    <main className="m-6 max-w-[40rem]">
       {uniqueTaskFors.map((taskFor) => (
         <div key={taskFor}>
           <div className="flex justify-between items-end bg-neutral-700 border-b-4 border-blue-200 text-white text-2xl py-1 px-4 rounded-t-lg shadow-lg shadow-neutral-700">
