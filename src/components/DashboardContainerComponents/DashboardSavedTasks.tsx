@@ -12,12 +12,28 @@ interface LoadedTaskProps {
   taskFor: string;
   isCompleted?: boolean;
   createdAt?: Date;
+  points?: number;
+  completedAt: Date;
+}
+
+interface Task {
+  id: string;
+  points: number;
+  deadline: string;
+  isCompleted: boolean;
+  completedAt?: Date;
+}
+
+enum TaskStatus {
+  Normal = "normal",
+  Warning = "warning",
+  Late = "late",
 }
 
 const DashboardSavedTasks: React.FC = () => {
   const { data: session } = useSession();
-
   const [loadedTasks, setLoadedTasks] = useState<LoadedTaskProps[]>([]);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -33,14 +49,65 @@ const DashboardSavedTasks: React.FC = () => {
             createdAt: new Date(),
           });
 
-          setLoadedTasks(tasks);
+          const sortedTasks = tasks.sort(
+            (a: any, b: any) =>
+              new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+          );
+
+          const tasksWithPoints = sortedTasks.map((task: Task) => ({
+            ...task,
+            points: task.points || 0,
+          }));
+
+          setLoadedTasks(tasksWithPoints);
         } catch (error) {
           console.error("Failed to load tasks:", error);
         }
       }
     };
     loadTasks();
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
   }, [session]);
+
+  const calculatePoints = (task: LoadedTaskProps) => {
+    if (task.isCompleted) {
+      if (
+        task.completedAt &&
+        new Date(task.completedAt) > new Date(task.deadline)
+      ) {
+        return 0.5; // Completed late
+      }
+      return 1; // Completed on time
+    }
+    return -1; // Not completed
+  };
+
+  const getTaskStatus = (deadline: string): TaskStatus => {
+    const deadlineTime = new Date(deadline).getTime();
+    const currentTimeMs = currentTime.getTime();
+    const warningThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    if (currentTimeMs > deadlineTime) {
+      return TaskStatus.Late;
+    } else if (deadlineTime - currentTimeMs < warningThreshold) {
+      return TaskStatus.Warning;
+    }
+    return TaskStatus.Normal;
+  };
+
+  const getStatusColor = (status: TaskStatus): string => {
+    switch (status) {
+      case TaskStatus.Warning:
+        return "bg-amber-200/50";
+      case TaskStatus.Late:
+        return "bg-red-200/50";
+      default:
+        return "";
+    }
+  };
 
   const handleCheckboxChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -49,13 +116,32 @@ const DashboardSavedTasks: React.FC = () => {
     const { checked } = event.target;
 
     try {
-      await updateTask({ id: taskId, isCompleted: checked });
+      const completedAt = checked ? new Date() : undefined;
+      await updateTask({
+        id: taskId,
+        isCompleted: checked,
+        completedAt,
+      } as Task);
 
       setLoadedTasks((prevTasks) =>
         prevTasks.map((task) =>
-          task.id === taskId ? { ...task, isCompleted: checked } : task
+          task.id === taskId
+            ? {
+                ...task,
+                isCompleted: checked,
+                completedAt: completedAt ?? new Date(),
+                points: calculatePoints({
+                  ...task,
+                  isCompleted: checked,
+                  completedAt: completedAt ?? new Date(),
+                }),
+              }
+            : task
         )
       );
+
+      // Here I'll update the points in the database
+      // await updateTaskPoints({ id: taskId, points: calculatedPoints });
     } catch (error) {
       console.error("Failed to update task:", error);
     }
@@ -65,41 +151,51 @@ const DashboardSavedTasks: React.FC = () => {
   const datesCreated = Array.from(new Set(loadedTasks.map((t) => t.createdAt)));
 
   return (
-    <main className="m-6 max-w-[40rem]">
+    <main className="m-6">
       {uniqueTaskFors.map((taskFor) => (
         <div key={taskFor}>
           <div className="flex justify-between items-end bg-neutral-700 border-b-4 border-blue-200 text-white text-2xl py-1 px-4 rounded-t-lg shadow-lg shadow-neutral-700">
-            <h3>Saved Tasks for {taskFor}</h3>
+            <h3 className="text-base">Saved Tasks for {taskFor}</h3>
+            <p className="text-base">Morning Essentials</p>
             <p className="text-base">
               Created on {datesCreated?.[0]?.toLocaleDateString()}
             </p>
           </div>
           <div className="bg-indigo-50 px-4 py-2 space-y-4 rounded-b-lg shadow-md shadow-neutral-600">
-            {loadedTasks.map((t) => (
-              <div key={t.id}>
-                <div className="flex justify-between items-center border-b border-neutral-400">
-                  <p className="w-[13rem]">{t.text}</p>
-                  <p className="w-[6rem]">{t.deadline}</p>
-                  <p>{t.duedate}</p>
-                  <input
-                    type="checkbox"
-                    id={t.id}
-                    checked={t.isCompleted}
-                    onChange={(event) => handleCheckboxChange(event, t.id)}
-                    className="w-4 h-4"
-                  />
-                  <span
-                    className={`ml-[-1.5rem] text-[0.85rem] ${
-                      t.isCompleted
-                        ? "bg-neutral-600 font-semibold text-green-300 px-2 rounded-full"
-                        : "bg-transparent font-semibold text-red-500 px-2 rounded-full"
-                    }`}
-                  >
-                    {t.isCompleted ? "Completed" : "Incomplete"}
-                  </span>
+            {loadedTasks.map((t) => {
+              const taskStatus = getTaskStatus(t.deadline);
+              return (
+                <div
+                  key={t.id}
+                  className={`p-2 rounded ${getStatusColor(taskStatus)}`}
+                >
+                  <div className="flex justify-between items-center border-b border-neutral-400">
+                    <p className="w-[13rem]">{t.text}</p>
+                    <p className="w-[6rem]">{t.deadline}</p>
+                    <p>{t.duedate}</p>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={t.id}
+                        checked={t.isCompleted}
+                        onChange={(event) => handleCheckboxChange(event, t.id)}
+                        className="w-4 h-4"
+                      />
+                      <span
+                        className={`ml-[-2rem] text-[0.85rem] ${
+                          t.isCompleted
+                            ? "bg-neutral-600 font-semibold text-green-300 px-2 rounded-full"
+                            : "bg-transparent font-semibold text-red-500 px-2 rounded-full"
+                        }`}
+                      >
+                        {t.isCompleted ? "Completed" : "Incomplete"}
+                      </span>
+                    </div>
+                    <span>Points: {t.points}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}

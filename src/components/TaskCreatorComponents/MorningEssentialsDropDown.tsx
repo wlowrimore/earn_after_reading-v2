@@ -25,6 +25,7 @@ const MorningEssentialsDropDown: React.FC = () => {
   const [taskForValue, setTaskForValue] = useState<string>("");
 
   const options: Option[] = [
+    { value: "Up and Moving", label: "Up and Moving" },
     { value: "Eat Breakfast", label: "Eat Breakfast" },
     { value: "Clean Up Breakfast", label: "Clean Up Breakfast" },
     { value: "Brush Teeth", label: "Brush Teeth" },
@@ -41,6 +42,8 @@ const MorningEssentialsDropDown: React.FC = () => {
     { value: "Take Medication", label: "Take Medication" },
     { value: "Take out the Trash", label: "Take out the Trash" },
     { value: "Feed Pets", label: "Feed Pets" },
+    { value: "In the Car", label: "In the Car" },
+    { value: "At Bus Stop", label: "At Bus Stop" },
   ];
 
   const handleOptionChange = (
