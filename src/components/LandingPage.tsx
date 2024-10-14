@@ -21,7 +21,7 @@ const LandingPage = () => {
 
   return (
     <main className="my-12">
-      <section className="flex items-center gap-20">
+      <section className="flex justify-between items-center gap-20">
         {!session ? (
           <article className="w-1/2 text-2xl tracking-wide">
             <h1 className="uppercase text-5xl text-neutral-700 font-semibold mb-3">
@@ -65,8 +65,14 @@ const LandingPage = () => {
             </button>
           </article>
         )}
-        <div className="w-1/2">
-          <Image src={HeroImage} alt="Hero Image" width={550} height={550} />
+        <div className="w-1/3">
+          <Image
+            src={HeroImage}
+            alt="Hero Image"
+            width={1000}
+            height={1000}
+            className="w-100 h-100 object-cover"
+          />
         </div>
       </section>
     </main>
