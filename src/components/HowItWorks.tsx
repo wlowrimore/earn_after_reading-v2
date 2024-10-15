@@ -20,11 +20,6 @@ export function HowItWorks() {
           skills. Our app utilizes a reward-based system that encourages
           responsibility, accountability, and follows a structured routine.
         </p>
-        {/* <div className="w-full flex justify-center items-center mb-6">
-          <div className="w-1/3 h-[0.025rem] bg-black"></div>
-          <div className="text-3xl font-light px-8">How it Works</div>
-          <div className="w-1/3 h-[0.025rem] bg-black"></div>
-        </div> */}
         <p className="flex flex-col w-full leading-6 py-3 border-b">
           <span className="flex w-full text-xl text-[#a85181] font-semibold">
             Create Tasks
