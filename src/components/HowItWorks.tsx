@@ -1,3 +1,10 @@
+import {
+  LifeBuoy,
+  MessageCircleHeart,
+  Signature,
+  Waypoints,
+} from "lucide-react";
+import Image from "next/image";
 import React from "react";
 
 export function HowItWorks() {
@@ -61,45 +68,59 @@ export function HowItWorks() {
           <span className="flex w-full text-xl text-[#a85181] font-semibold">
             Key Benefits
           </span>{" "}
-          <ul className="list-decimal space-y-2 pl-5">
-            <li>
-              Positive Reinforcement
-              <li className="list-disc ml-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+            <div className="flex flex-col py-6 px-8 rounded-lg bg-indigo-300/30">
+              <h3 className="text-center text-2xl font-[500]">
+                Positive Reinforcement
+              </h3>
+              <div className="w-full flex justify-center my-2">
+                <MessageCircleHeart className="w-24 h-24 text-zinc-400 my-3" />
+              </div>
+              <p className="text-base font-[500] text-neutral-700">
                 Our reward-based system encourages positive behavior and
                 motivation.
-              </li>
-            </li>
-            <li>
-              Personalized Approach
-              <ul className="list-disc">
-                <li className="list-inside">
-                  Tailor the app to your child&apos;s individual needs and
-                  interests.
-                </li>
-              </ul>
-            </li>
-            <li>
-              Habit Formation
-              <ul className="list-disc">
-                <li className="list-inside">
-                  Develop essential life skills and routines for long-term
-                  success.
-                </li>
-              </ul>
-            </li>
-            <li>
-              Improved Parent-Child Relationships
-              <ul className="list-disc">
-                <li className="list-inside">
-                  Strengthen your bond through shared goals and achievements.
-                </li>
-                <li className="list-inside">
-                  Earn After Reading is a valuable tool for parents seeking to
-                  empower their children and foster a love of learning.
-                </li>
-              </ul>
-            </li>
-          </ul>
+              </p>
+            </div>
+            <div className="flex flex-col py-6 px-8 rounded-lg bg-indigo-300/30">
+              <h3 className="text-center text-2xl font-[500]">
+                Personalized Approach
+              </h3>
+              <div className="w-full flex justify-center my-2">
+                <Signature className="w-24 h-24 text-zinc-400 my-3" />
+              </div>
+              <p className="text-base font-[500] text-neutral-700">
+                Tailor the app to your child&apos;s individual needs and
+                interests.
+              </p>
+            </div>
+            <div className="flex flex-col py-6 px-8 rounded-lg bg-indigo-300/30">
+              <h3 className="text-center text-2xl font-[500]">
+                Habit Development
+              </h3>
+              <div className="w-full flex justify-center my-2">
+                <LifeBuoy className="w-24 h-24 text-zinc-400 my-3" />
+              </div>
+              <p className="text-base font-[500] text-neutral-700">
+                Develop essential life skills and routines for long-term
+                success.
+              </p>
+            </div>
+            <div className="flex flex-col py-6 px-8 rounded-lg bg-indigo-300/30">
+              <h3 className="text-center text-2xl font-[500]">
+                Parent-Child Relationships
+              </h3>
+              <div className="w-full flex justify-center my-2">
+                <Waypoints className="w-24 h-24 text-zinc-400 my-3" />
+              </div>
+              <p className="text-base font-[500] text-neutral-700">
+                Strengthen your bond through shared goals and achievements.
+              </p>
+            </div>
+          </div>
+          <p className="flex justify-center p-3 bg-neutral-700 text-white rounded-lg">
+            Earn After Reading is a valuable tool for parents seeking to empower
+            their children and foster a love of learning.
+          </p>
         </p>
       </article>
     </main>
