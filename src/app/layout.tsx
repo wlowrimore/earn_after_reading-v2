@@ -4,6 +4,7 @@ import { auth } from "../../auth";
 import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import "./globals.css";
+import { TaskProvider } from "./context/TaskContext";
 
 const raleway = Raleway({
   subsets: ["latin"],
@@ -26,7 +27,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <Providers>
-        <body className={raleway.className}>{children}</body>
+        <TaskProvider>
+          <body className={raleway.className}>{children}</body>
+        </TaskProvider>
       </Providers>
     </html>
   );

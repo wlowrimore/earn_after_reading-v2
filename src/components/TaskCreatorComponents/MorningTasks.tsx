@@ -20,7 +20,7 @@ interface Task {
   isValid: boolean;
 }
 
-const MorningEssentialsDropDown: React.FC = () => {
+const MorningTasks: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskForValue, setTaskForValue] = useState<string>("");
 
@@ -258,7 +258,7 @@ const MorningEssentialsDropDown: React.FC = () => {
         </div>
       </section>
 
-      <h2 className="text-xl mb-2">Morning Essentials</h2>
+      <h2 className="text-xl mb-2">Select Tasks</h2>
       <Select<Option>
         instanceId="react-select-1728712826578-live-region"
         value={tasks[0] ? { value: tasks[0].text, label: tasks[0].text } : null}
@@ -349,4 +349,4 @@ const MorningEssentialsDropDown: React.FC = () => {
   );
 };
 
-export default MorningEssentialsDropDown;
+export default MorningTasks;

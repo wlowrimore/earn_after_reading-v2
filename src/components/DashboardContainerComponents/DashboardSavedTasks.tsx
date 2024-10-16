@@ -34,6 +34,7 @@ const DashboardSavedTasks: React.FC = () => {
   const { data: session } = useSession();
   const [loadedTasks, setLoadedTasks] = useState<LoadedTaskProps[]>([]);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [titleTime, setTitleTime] = useState<string>("");
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -150,13 +151,32 @@ const DashboardSavedTasks: React.FC = () => {
   const uniqueTaskFors = Array.from(new Set(loadedTasks.map((t) => t.taskFor)));
   const datesCreated = Array.from(new Set(loadedTasks.map((t) => t.createdAt)));
 
+  useEffect(() => {
+    const getTitleTime = () => {
+      const timeOfDay = loadedTasks.map((lt) => {
+        if (lt.deadline <= "12:00" && lt.deadline.includes("am")) {
+          setTitleTime("Evening");
+        } else if (
+          lt.deadline >= "12:00" &&
+          lt.deadline.includes("pm") &&
+          lt.deadline <= "4:00" &&
+          lt.deadline.includes("pm")
+        ) {
+          setTitleTime("Afternoon");
+        }
+        setTitleTime("Morning");
+      });
+    };
+    getTitleTime();
+  }, [loadedTasks]);
+
   return (
     <main className="m-6">
       {uniqueTaskFors.map((taskFor) => (
         <div key={taskFor}>
           <div className="flex justify-between items-end bg-neutral-700 border-b-4 border-blue-200 text-white text-2xl py-1 px-4 rounded-t-lg shadow-lg shadow-neutral-700">
             <h3 className="text-base">Saved Tasks for {taskFor}</h3>
-            <p className="text-base">Morning Essentials</p>
+            <p className="text-base">{titleTime} Tasks</p>
             <p className="text-base">
               Created on {datesCreated?.[0]?.toLocaleDateString()}
             </p>
