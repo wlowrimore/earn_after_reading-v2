@@ -1,4 +1,4 @@
-import MorningTasks from "../../../components/TaskCreatorComponents/MorningTasks";
+import AllTasks from "../../../components/TaskCreatorComponents/AllTaks";
 
 const TaskCreatorPage = () => {
   return (
@@ -11,7 +11,7 @@ const TaskCreatorPage = () => {
         </p>
       </div>
       <div>
-        <MorningTasks />
+        <AllTasks />
       </div>
     </main>
   );

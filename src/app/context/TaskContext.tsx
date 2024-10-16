@@ -32,6 +32,8 @@ interface Task {
   isSaved: boolean;
   isValid: boolean;
   completedAt?: Date;
+  createdAt?: Date;
+  points?: number;
 }
 
 interface Option {
@@ -46,12 +48,16 @@ enum TaskStatus {
 }
 
 interface TaskContextProps {
+  loadTasks: () => Promise<void>;
   loadedTasks: LoadedTaskProps[];
   tasks: Task[];
   currentTime: Date;
   titleTime: string;
   taskForValue: string;
   options: Option[];
+  uniqueTaskFors: string[];
+  datesCreated: string[];
+  //   handleTitleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleCheckboxChange: (
     event: React.ChangeEvent<HTMLInputElement>,
     taskId: string
@@ -73,7 +79,9 @@ interface TaskContextProps {
     newDeadline: string
   ) => void;
   handleDeadlineChange: (taskId: string, newDeadline: string) => void;
+  validateDeadline: (deadline: string) => boolean;
   handleDueDateChange: (taskId: string, newDueDate: string) => void;
+  calculatePoints: (task: Task) => number;
   handleTaskForChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSave: (taskIndex: number) => Promise<void>;
   handleRemove: (taskId: string) => Promise<void>;
@@ -90,43 +98,47 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [titleTime, setTitleTime] = useState<string>("");
   const [taskForValue, setTaskForValue] = useState<string>("");
+  const [options, setOptions] = useState<Option[]>([]);
+  const [uniqueTaskFors, setUniqueTaskFors] = useState<string[]>([]);
+  const [datesCreated, setDatesCreated] = useState<string[]>([]);
 
-  const options: Option[] = [
-    { value: "Up and Moving", label: "Up and Moving" },
-    { value: "Eat Breakfast", label: "Eat Breakfast" },
-    // ... (rest of the options)
-  ];
+  const loadTasks = async () => {
+    if (session?.user?.id) {
+      try {
+        const tasks = await getTasks({
+          userId: session.user.id as string,
+          text: "",
+          deadline: "",
+          duedate: "",
+          taskFor: "",
+          isCompleted: false,
+          createdAt: new Date(),
+        });
+
+        const sortedTasks = tasks.sort(
+          (a: any, b: any) =>
+            new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+        );
+
+        const tasksWithPoints = sortedTasks.map((task: LoadedTaskProps) => ({
+          ...task,
+          points: task.points || 0,
+        }));
+
+        setLoadedTasks(tasksWithPoints);
+        setUniqueTaskFors(
+          Array.from(new Set(tasksWithPoints.map((t: Task) => t.taskFor)))
+        );
+        setDatesCreated(
+          Array.from(new Set(tasksWithPoints.map((t: Task) => t.createdAt)))
+        );
+      } catch (error) {
+        console.error("Failed to load tasks:", error);
+      }
+    }
+  };
 
   useEffect(() => {
-    const loadTasks = async () => {
-      if (session?.user?.id) {
-        try {
-          const tasks = await getTasks({
-            userId: session.user.id as string,
-            text: "",
-            deadline: "",
-            duedate: "",
-            taskFor: "",
-            isCompleted: false,
-            createdAt: new Date(),
-          });
-
-          const sortedTasks = tasks.sort(
-            (a: any, b: any) =>
-              new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
-          );
-
-          const tasksWithPoints = sortedTasks.map((task: LoadedTaskProps) => ({
-            ...task,
-            points: task.points || 0,
-          }));
-
-          setLoadedTasks(tasksWithPoints);
-        } catch (error) {
-          console.error("Failed to load tasks:", error);
-        }
-      }
-    };
     loadTasks();
 
     const timer = setInterval(() => {
@@ -135,6 +147,59 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return () => clearInterval(timer);
   }, [session]);
+
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const res = await fetch("/js/task-options.js");
+        const data = await res.json();
+        setOptions(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  //   useEffect(() => {
+  //     const loadTasks = async () => {
+  //       if (session?.user?.id) {
+  //         try {
+  //           const tasks = await getTasks({
+  //             userId: session.user.id as string,
+  //             text: "",
+  //             deadline: "",
+  //             duedate: "",
+  //             taskFor: "",
+  //             isCompleted: false,
+  //             createdAt: new Date(),
+  //           });
+
+  //           const sortedTasks = tasks.sort(
+  //             (a: any, b: any) =>
+  //               new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+  //           );
+
+  //           const tasksWithPoints = sortedTasks.map((task: LoadedTaskProps) => ({
+  //             ...task,
+  //             points: task.points || 0,
+  //           }));
+
+  //           setLoadedTasks(tasksWithPoints);
+  //         } catch (error) {
+  //           console.error("Failed to load tasks:", error);
+  //         }
+  //       }
+  //     };
+  //     loadTasks();
+
+  //     const timer = setInterval(() => {
+  //       setCurrentTime(new Date());
+  //     }, 60000);
+
+  //     return () => clearInterval(timer);
+  //   }, [session]);
 
   useEffect(() => {
     const getTitleTime = () => {
@@ -403,6 +468,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         titleTime,
         taskForValue,
         options,
+        uniqueTaskFors,
+        datesCreated,
+        loadTasks,
+        calculatePoints,
         handleCheckboxChange,
         getTaskStatus,
         getStatusColor,
@@ -410,6 +479,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         handleCustomTitleChange,
         handleCustomDeadlineChange,
         handleDeadlineChange,
+        validateDeadline,
         handleDueDateChange,
         handleTaskForChange,
         handleSave,

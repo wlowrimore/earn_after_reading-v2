@@ -16,7 +16,7 @@ export function CaseStudies() {
   useEffect(() => {
     const fetchCaseStudies = async () => {
       try {
-        const res = await fetch("/json/case-studies.js");
+        const res = await fetch("/js/case-studies.js");
         const data = await res.json();
         setCaseStudies(data);
       } catch (error) {
