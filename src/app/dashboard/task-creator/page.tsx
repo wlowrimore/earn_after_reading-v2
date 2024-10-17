@@ -1,4 +1,4 @@
-import AllTasks from "../../../components/TaskCreatorComponents/AllTaks";
+import AllTasks from "../../../components/TaskCreatorComponents/AllTasks";
 
 const TaskCreatorPage = () => {
   return (

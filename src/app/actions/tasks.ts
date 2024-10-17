@@ -3,6 +3,26 @@
 import { db } from "../../../lib/db";
 import { auth } from "../../../auth";
 
+export interface SaveTaskParams {
+  text: string;
+  deadline: string;
+  duedate: string;
+  taskFor: string;
+  isCompleted?: boolean;
+  isValid?: boolean;
+  createdAt?: string;
+}
+
+export interface GetTasksParams {
+  userId: string;
+  text: string;
+  deadline: string;
+  duedate?: string;
+  taskFor: string;
+  isCompleted?: boolean;
+  createdAt?: string;
+}
+
 export async function getTasks(task: {
   userId: string;
   text: string;
@@ -10,7 +30,7 @@ export async function getTasks(task: {
   duedate?: string;
   taskFor: string;
   isCompleted?: boolean;
-  createdAt?: Date;
+  createdAt?: string;
 }) {
   try {
     const session = await auth();
@@ -41,6 +61,7 @@ export async function saveTask(task: {
   taskFor: string;
   isCompleted?: boolean;
   isValid?: boolean;
+  createdAt: string;
 }) {
   const session = await auth();
   const id = session?.user?.id;
@@ -61,6 +82,7 @@ export async function saveTask(task: {
         isCompleted: task.isCompleted ?? false,
         isSaved: true,
         userId: id,
+        createdAt: task.createdAt,
       },
     });
 
@@ -107,6 +129,7 @@ export async function removeTask(task: {
   duedate?: string;
   taskFor: string;
   isCompleted?: boolean;
+  createdAt: string;
 }) {
   const session = await auth();
 

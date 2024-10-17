@@ -57,7 +57,7 @@ interface TaskContextProps {
   options: Option[];
   uniqueTaskFors: string[];
   datesCreated: string[];
-  //   handleTitleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  formatDateForDatabase: (date: Date | string) => Date;
   handleCheckboxChange: (
     event: React.ChangeEvent<HTMLInputElement>,
     taskId: string
@@ -81,7 +81,7 @@ interface TaskContextProps {
   handleDeadlineChange: (taskId: string, newDeadline: string) => void;
   validateDeadline: (deadline: string) => boolean;
   handleDueDateChange: (taskId: string, newDueDate: string) => void;
-  calculatePoints: (task: Task) => number;
+  calculatePoints: (task: LoadedTaskProps) => number;
   handleTaskForChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSave: (taskIndex: number) => Promise<void>;
   handleRemove: (taskId: string) => Promise<void>;
@@ -102,130 +102,193 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   const [uniqueTaskFors, setUniqueTaskFors] = useState<string[]>([]);
   const [datesCreated, setDatesCreated] = useState<string[]>([]);
 
+  const formatDateForDatabase = (date: Date | string | undefined): Date => {
+    if (!date) return new Date();
+
+    try {
+      if (date instanceof Date) {
+        return date;
+      }
+
+      const parsedDate = new Date(date);
+
+      if (isNaN(parsedDate.getTime())) {
+        console.warn(`Invalid date input: ${date}, returning current date`);
+        return new Date();
+      }
+
+      return new Date(
+        parsedDate.getFullYear(),
+        parsedDate.getMonth(),
+        parsedDate.getDate()
+      );
+    } catch (error) {
+      console.warn(`Error formatting date: ${date}, returning current date`);
+      return new Date();
+    }
+  };
+
+  const ensureValidDate = (date: Date | string | undefined): Date => {
+    if (!date) return new Date();
+
+    try {
+      const parsedDate = typeof date === "string" ? new Date(date) : date;
+      return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    } catch {
+      return new Date();
+    }
+  };
+
   const loadTasks = async () => {
     if (session?.user?.id) {
       try {
+        const currentDate = new Date();
+
         const tasks = await getTasks({
           userId: session.user.id as string,
           text: "",
           deadline: "",
-          duedate: "",
+          duedate: currentDate.toISOString(),
           taskFor: "",
           isCompleted: false,
-          createdAt: new Date(),
+          createdAt: currentDate.toISOString(),
         });
 
         const sortedTasks = tasks.sort(
-          (a: any, b: any) =>
-            new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+          (a: LoadedTaskProps, b: LoadedTaskProps) => {
+            const dateA = ensureValidDate(a.deadline).getTime();
+            const dateB = ensureValidDate(b.deadline).getTime();
+            return dateA - dateB;
+          }
         );
 
-        const tasksWithPoints = sortedTasks.map((task: LoadedTaskProps) => ({
-          ...task,
-          points: task.points || 0,
-        }));
+        const tasksWithPoints = sortedTasks.map((task: LoadedTaskProps) => {
+          const createdAt = ensureValidDate(task.createdAt);
+          const dueDate = ensureValidDate(task.duedate);
+          const completedAt = task.completedAt
+            ? ensureValidDate(task.completedAt)
+            : undefined;
+
+          return {
+            ...task,
+            points: task.points || 0,
+            createdAt,
+            duedate: dueDate.toISOString(),
+            completedAt,
+          } as LoadedTaskProps;
+        });
 
         setLoadedTasks(tasksWithPoints);
-        setUniqueTaskFors(
-          Array.from(new Set(tasksWithPoints.map((t: Task) => t.taskFor)))
+
+        // Update uniqueTaskFors
+        const uniqueTasks = Array.from(
+          new Set(tasksWithPoints.map((t) => t.taskFor))
         );
-        setDatesCreated(
-          Array.from(new Set(tasksWithPoints.map((t: Task) => t.createdAt)))
+        setUniqueTaskFors(uniqueTasks);
+
+        // Update datesCreated
+        const uniqueDates = Array.from(
+          new Set(
+            tasksWithPoints
+              .map((t) => {
+                try {
+                  const date = ensureValidDate(t.createdAt);
+                  return date.toISOString();
+                } catch {
+                  return null;
+                }
+              })
+              .filter(Boolean)
+          )
         );
+        setDatesCreated(uniqueDates as string[]);
       } catch (error) {
         console.error("Failed to load tasks:", error);
       }
     }
   };
 
-  useEffect(() => {
-    loadTasks();
+  const handleSave = async (taskIndex: number) => {
+    const taskToSave = tasks[taskIndex];
+    if (!taskToSave) return;
 
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
+    const isValid = validateDeadline(taskToSave.deadline);
 
-    return () => clearInterval(timer);
-  }, [session]);
+    if (!isValid || !taskToSave.deadline) {
+      setTasks(
+        tasks.map((task, index) => {
+          if (index === taskIndex) {
+            return {
+              ...task,
+              isValid: false,
+              isSaved: false,
+            };
+          }
+          return task;
+        })
+      );
+      return;
+    }
 
-  useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const res = await fetch("/js/task-options.js");
-        const data = await res.json();
-        setOptions(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    try {
+      const now = new Date();
+      const dueDate = ensureValidDate(taskToSave.duedate);
 
-    loadOptions();
-  }, []);
-
-  //   useEffect(() => {
-  //     const loadTasks = async () => {
-  //       if (session?.user?.id) {
-  //         try {
-  //           const tasks = await getTasks({
-  //             userId: session.user.id as string,
-  //             text: "",
-  //             deadline: "",
-  //             duedate: "",
-  //             taskFor: "",
-  //             isCompleted: false,
-  //             createdAt: new Date(),
-  //           });
-
-  //           const sortedTasks = tasks.sort(
-  //             (a: any, b: any) =>
-  //               new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
-  //           );
-
-  //           const tasksWithPoints = sortedTasks.map((task: LoadedTaskProps) => ({
-  //             ...task,
-  //             points: task.points || 0,
-  //           }));
-
-  //           setLoadedTasks(tasksWithPoints);
-  //         } catch (error) {
-  //           console.error("Failed to load tasks:", error);
-  //         }
-  //       }
-  //     };
-  //     loadTasks();
-
-  //     const timer = setInterval(() => {
-  //       setCurrentTime(new Date());
-  //     }, 60000);
-
-  //     return () => clearInterval(timer);
-  //   }, [session]);
-
-  useEffect(() => {
-    const getTitleTime = () => {
-      const timeOfDay = loadedTasks.map((lt) => {
-        if (lt.deadline <= "12:00" && lt.deadline.includes("am")) {
-          return "Evening";
-        } else if (
-          lt.deadline >= "12:00" &&
-          lt.deadline.includes("pm") &&
-          lt.deadline <= "4:00" &&
-          lt.deadline.includes("pm")
-        ) {
-          return "Afternoon";
-        }
-        return "Morning";
+      const savedTask = await saveTask({
+        text: taskToSave.text,
+        deadline: taskToSave.deadline,
+        duedate: dueDate.toISOString(),
+        taskFor: taskToSave.taskFor,
+        isCompleted: taskToSave.isCompleted,
+        isValid: taskToSave.isValid,
+        createdAt: now.toISOString(),
       });
-      setTitleTime(timeOfDay[0] || "");
-    };
-    getTitleTime();
-  }, [loadedTasks]);
+
+      setTasks(
+        tasks.map((task, index) => {
+          if (index === taskIndex) {
+            return {
+              ...savedTask,
+              duedate: dueDate.toISOString(),
+              createdAt: now,
+              isSaved: true,
+              isValid: true,
+            };
+          }
+          return task;
+        })
+      );
+
+      setLoadedTasks((prevLoadedTasks) => {
+        const newTask = {
+          ...savedTask,
+          duedate: dueDate.toISOString(),
+          createdAt: now,
+          points: 0,
+        };
+        return [...prevLoadedTasks, newTask].sort((a, b) => {
+          const dateA = ensureValidDate(a.deadline).getTime();
+          const dateB = ensureValidDate(b.deadline).getTime();
+          return dateA - dateB;
+        });
+      });
+
+      setUniqueTaskFors((prev) =>
+        Array.from(new Set([...prev, taskToSave.taskFor]))
+      );
+      setDatesCreated((prev) =>
+        Array.from(new Set([...prev, now.toISOString()]))
+      );
+    } catch (error) {
+      console.error("Failed to save task:", error);
+    }
+  };
 
   const calculatePoints = (task: LoadedTaskProps) => {
     if (task.isCompleted) {
       if (
         task.completedAt &&
-        new Date(task.completedAt) > new Date(task.deadline)
+        ensureValidDate(task.completedAt) > ensureValidDate(task.deadline)
       ) {
         return 0.5; // Completed late
       }
@@ -235,7 +298,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getTaskStatus = (deadline: string): TaskStatus => {
-    const deadlineTime = new Date(deadline).getTime();
+    const deadlineTime = ensureValidDate(deadline).getTime();
     const currentTimeMs = currentTime.getTime();
     const warningThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
@@ -299,9 +362,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
             : task
         )
       );
-
-      // Here you can update the points in the database
-      // await updateTaskPoints({ id: taskId, points: calculatedPoints });
     } catch (error) {
       console.error("Failed to update task:", error);
     }
@@ -316,7 +376,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         id: "",
         text: option.value,
         deadline: "",
-        duedate: new Date().toISOString().split("T")[0],
+        duedate: "",
         taskFor: taskForValue,
         isSaved: false,
         isValid: false,
@@ -391,55 +451,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
-  const handleSave = async (taskIndex: number) => {
-    const taskToSave = tasks[taskIndex];
-    if (!taskToSave) return;
-
-    const isValid = validateDeadline(taskToSave.deadline);
-
-    if (!isValid || !taskToSave.deadline) {
-      setTasks(
-        tasks.map((task, index) => {
-          if (index === taskIndex) {
-            return {
-              ...task,
-              isValid: false,
-              isSaved: false,
-            };
-          }
-          return task;
-        })
-      );
-      return;
-    }
-
-    try {
-      const savedTask = await saveTask({
-        text: taskToSave.text,
-        deadline: taskToSave.deadline,
-        duedate: taskToSave.duedate,
-        taskFor: taskToSave.taskFor,
-        isCompleted: taskToSave.isCompleted,
-        isValid: taskToSave.isValid,
-      });
-
-      setTasks(
-        tasks.map((task, index) => {
-          if (index === taskIndex) {
-            return {
-              ...savedTask,
-              isSaved: true,
-              isValid: true,
-            };
-          }
-          return task;
-        })
-      );
-    } catch (error) {
-      console.error("Failed to save task:", error);
-    }
-  };
-
   const handleRemove = async (taskId: string) => {
     const taskToRemove = tasks.find((task) => task.id === taskId);
     if (!taskToRemove) return;
@@ -453,15 +464,64 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         deadline: taskToRemove.deadline,
         duedate: taskToRemove.duedate,
         taskFor: taskToRemove.taskFor,
+        createdAt:
+          taskToRemove.createdAt !== undefined
+            ? taskToRemove.createdAt.toISOString()
+            : "",
       });
     } catch (error) {
       console.error("Failed to remove task:", error);
     }
   };
 
+  useEffect(() => {
+    loadTasks();
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, [session]);
+
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const res = await fetch("/js/task-options.js");
+        const data = await res.json();
+        setOptions(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  useEffect(() => {
+    const getTitleTime = () => {
+      const timeOfDay = loadedTasks.map((lt) => {
+        if (lt.deadline <= "12:00" && lt.deadline.includes("am")) {
+          return "Evening";
+        } else if (
+          lt.deadline >= "12:00" &&
+          lt.deadline.includes("pm") &&
+          lt.deadline <= "4:00" &&
+          lt.deadline.includes("pm")
+        ) {
+          return "Afternoon";
+        }
+        return "Morning";
+      });
+      setTitleTime(timeOfDay[0] || "");
+    };
+    getTitleTime();
+  }, [loadedTasks]);
+
   return (
     <TaskContext.Provider
       value={{
+        loadTasks,
         loadedTasks,
         tasks,
         currentTime,
@@ -470,8 +530,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         options,
         uniqueTaskFors,
         datesCreated,
-        loadTasks,
-        calculatePoints,
+        formatDateForDatabase,
         handleCheckboxChange,
         getTaskStatus,
         getStatusColor,
@@ -481,6 +540,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         handleDeadlineChange,
         validateDeadline,
         handleDueDateChange,
+        calculatePoints,
         handleTaskForChange,
         handleSave,
         handleRemove,
